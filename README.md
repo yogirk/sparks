@@ -71,6 +71,8 @@ First capture: had an idea about agent runtimes.
 #   sparks ingest --finalize   → archives, clears inbox, scans, commits
 ```
 
+For a longer walk-through aimed at first-time agent users (Claude Code, Codex CLI, Gemini CLI, MCP), see [GETTING_STARTED.md](GETTING_STARTED.md).
+
 ## Architecture
 
 Three layers:
