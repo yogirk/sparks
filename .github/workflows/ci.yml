@@ -30,14 +30,18 @@ jobs:
             || (echo "::error::contract drift! run: make sync-contract"; exit 1)
 
       - name: Vet
+        shell: bash
         run: go vet ./...
 
       - name: Test
+        shell: bash
         run: go test -race -coverprofile=cover.out ./...
 
       - name: Coverage
         if: matrix.os == 'ubuntu-latest'
+        shell: bash
         run: go tool cover -func=cover.out | tail -1
 
       - name: Build
+        shell: bash
         run: go build -o sparks ./cmd/sparks
