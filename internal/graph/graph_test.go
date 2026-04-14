@@ -70,6 +70,39 @@ func TestResolveByAlias(t *testing.T) {
 	}
 }
 
+// TestResolveByFilenameWhenTitleDiffers covers the real-world case
+// surfaced by dogfood: a page with a verbose frontmatter title is still
+// findable by its filename. This matches Obsidian's behavior.
+func TestResolveByFilenameWhenTitleDiffers(t *testing.T) {
+	r := NewResolver([]PageRef{{
+		Path:  "wiki/entities/Project Trace.md",
+		Title: "Project Trace - Application-Centric Cloud Dashboard",
+	}})
+	if got := r.Resolve("Project Trace"); got != "wiki/entities/Project Trace.md" {
+		t.Errorf("filename fallback: got %q", got)
+	}
+	// And the verbose title still resolves.
+	if got := r.Resolve("Project Trace - Application-Centric Cloud Dashboard"); got != "wiki/entities/Project Trace.md" {
+		t.Errorf("verbose title: got %q", got)
+	}
+	// Case-insensitive filename match.
+	if got := r.Resolve("project trace"); got != "wiki/entities/Project Trace.md" {
+		t.Errorf("lowercase filename: got %q", got)
+	}
+}
+
+func TestResolveTitleWinsOverFilenameWhenBothMatch(t *testing.T) {
+	// Two pages: A's title equals B's filename. A should win because
+	// title takes precedence over filename in resolution order.
+	r := NewResolver([]PageRef{
+		{Path: "wiki/entities/A.md", Title: "Shared Name"},
+		{Path: "wiki/entities/Shared Name.md", Title: "B Title"},
+	})
+	if got := r.Resolve("Shared Name"); got != "wiki/entities/A.md" {
+		t.Errorf("title should win over filename: got %q, want A.md", got)
+	}
+}
+
 func TestResolveBrokenReturnsEmpty(t *testing.T) {
 	r := NewResolver(nil)
 	if got := r.Resolve("Nonexistent"); got != "" {
