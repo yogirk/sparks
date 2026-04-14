@@ -1,0 +1,104 @@
+# goreleaser config for Sparks. Run `goreleaser release --snapshot --clean`
+# locally to test; CI invokes it on tag push (see .github/workflows/release.yml).
+version: 2
+
+project_name: sparks
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: sparks
+    main: ./cmd/sparks
+    binary: sparks
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+
+archives:
+  - id: default
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    formats: ["tar.gz"]
+    format_overrides:
+      - goos: windows
+        formats: ["zip"]
+    files:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+      - sparks-spec.md
+      - sparks-contracts.md
+      - sparks-insight.md
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ .Tag }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^test:"
+
+release:
+  github:
+    owner: yogirk
+    name: sparks
+  draft: false
+  prerelease: auto
+  header: |
+    ## Sparks {{ .Tag }}
+
+    Knowledge base runtime for AI agents — a single Go binary that any harness can drive.
+
+    Install:
+
+    ```bash
+    # Homebrew (once the tap is published)
+    brew install yogirk/tap/sparks
+
+    # Go install
+    go install github.com/yogirk/sparks/cmd/sparks@{{ .Tag }}
+    ```
+
+    Or grab a pre-built binary below.
+
+# Homebrew tap publishing is configured but commented out until the
+# yogirk/homebrew-tap repo is created. Uncomment + add HOMEBREW_TAP_GITHUB_TOKEN
+# to GitHub Actions secrets to enable.
+#
+# brews:
+#   - repository:
+#       owner: yogirk
+#       name: homebrew-tap
+#       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+#     commit_author:
+#       name: yogirk
+#       email: ranjeeth.kuppala@gmail.com
+#     directory: Formula
+#     homepage: "https://github.com/yogirk/sparks"
+#     description: "Knowledge base runtime for AI agents"
+#     license: MIT
+#     test: |
+#       system "#{bin}/sparks", "--version"
+#     install: |
+#       bin.install "sparks"

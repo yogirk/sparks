@@ -43,6 +43,8 @@ func newRootCmd() *cobra.Command {
 		newIndexCmd(),
 		newQueryCmd(),
 		newAffectedCmd(),
+		newDescribeCmd(),
+		newServeCmd(),
 	)
 	return root
 }

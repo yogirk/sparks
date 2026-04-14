@@ -43,3 +43,11 @@ tidy:
 
 clean:
 	rm -f $(BIN) cover.out
+
+.PHONY: sync-contract verify-contract
+
+sync-contract:
+	cp sparks-contracts.md internal/contract/contract.md
+
+verify-contract:
+	@diff -q sparks-contracts.md internal/contract/contract.md > /dev/null && echo "contract: in sync" || (echo "contract drift! run: make sync-contract" && exit 1)
