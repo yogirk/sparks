@@ -66,39 +66,36 @@ release:
   draft: false
   prerelease: auto
   header: |
-    ## Sparks {{ .Tag }}
+    ## Sparks {{ .Tag }} — pre-alpha
 
     Knowledge base runtime for AI agents — a single Go binary that any harness can drive.
+
+    **Heads up:** this is the first release. The internals are tested but the end-to-end agent-driven workflow has only been dogfooded on the maintainer's vault. Expect rough edges. Please [open an issue](https://github.com/yogirk/sparks/issues) when you find them — that's the fastest way to harden v0.x.
 
     Install:
 
     ```bash
-    # Homebrew (once the tap is published)
-    brew install yogirk/tap/sparks
+    # Homebrew (reuses the yogirk/homebrew-tgcp tap)
+    brew install yogirk/tgcp/sparks
 
     # Go install
     go install github.com/yogirk/sparks/cmd/sparks@{{ .Tag }}
     ```
 
-    Or grab a pre-built binary below.
+    Or grab a pre-built binary below (darwin / linux / windows × amd64 / arm64).
 
-# Homebrew tap publishing is configured but commented out until the
-# yogirk/homebrew-tap repo is created. Uncomment + add HOMEBREW_TAP_GITHUB_TOKEN
-# to GitHub Actions secrets to enable.
-#
-# brews:
-#   - repository:
-#       owner: yogirk
-#       name: homebrew-tap
-#       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-#     commit_author:
-#       name: yogirk
-#       email: ranjeeth.kuppala@gmail.com
-#     directory: Formula
-#     homepage: "https://github.com/yogirk/sparks"
-#     description: "Knowledge base runtime for AI agents"
-#     license: MIT
-#     test: |
-#       system "#{bin}/sparks", "--version"
-#     install: |
-#       bin.install "sparks"
+brews:
+  - repository:
+      owner: yogirk
+      name: homebrew-tgcp
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    commit_author:
+      name: yogirk
+      email: ranjeeth.kuppala@gmail.com
+    homepage: "https://github.com/yogirk/sparks"
+    description: "Knowledge base runtime for AI agents — a single Go binary that any harness can drive"
+    license: MIT
+    install: |
+      bin.install "sparks"
+    test: |
+      system "#{bin}/sparks", "--version"

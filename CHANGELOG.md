@@ -6,7 +6,9 @@ All notable changes to Sparks. The format follows [Keep a Changelog](https://kee
 
 ## [0.1.0] - 2026-04-14
 
-First public release. Sparks is a single Go binary that maintains the mechanical integrity of an agent-driven personal knowledge base.
+**Pre-alpha first release.** The internal packages are tested (~75% line coverage, race-clean across 12 packages on a CI matrix of macOS/Linux/Windows). The end-to-end agent-driven workflow has been dogfooded on the maintainer's vault but is not 100% manually tested. Expect rough edges. [Open issues](https://github.com/yogirk/sparks/issues) freely — that's the fastest way to harden the v0.x line.
+
+Sparks is a single Go binary that maintains the mechanical integrity of an agent-driven personal knowledge base.
 
 ### Added
 

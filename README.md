@@ -23,10 +23,12 @@ The agent's instructions collapse from ~200 lines of prose to:
 
 ## Install
 
-### Homebrew (once a tap is published)
+### Homebrew
+
+Sparks reuses the maintainer's existing tap (originally for `tgcp`), so the install path looks slightly off but works:
 
 ```bash
-brew install yogirk/tap/sparks
+brew install yogirk/tgcp/sparks
 ```
 
 ### Go install
