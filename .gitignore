@@ -1,0 +1,19 @@
+# Build output
+/dist/
+/sparks
+/bin/
+
+# Go
+*.test
+*.out
+coverage.*
+cover.out
+
+# Local vault fixtures that tests generate
+testdata/tmp/
+
+# Editor noise
+.vscode/
+.idea/
+*.swp
+.DS_Store
