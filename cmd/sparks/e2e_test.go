@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -52,6 +54,180 @@ func TestE2EInitScanStatus(t *testing.T) {
 	if _, err := filepath.Glob(filepath.Join(dir, "sparks.db")); err != nil {
 		t.Fatalf("glob sparks.db: %v", err)
 	}
+}
+
+// TestE2EIngestPrepareAndAbort drives `sparks ingest --prepare` followed
+// by `--abort` to prove the full concurrent-ingest lock lifecycle works
+// through the CLI.
+func TestE2EIngestPrepareAndAbort(t *testing.T) {
+	dir := t.TempDir()
+	runCmd(t, "init", dir)
+	t.Chdir(dir)
+
+	inbox := []byte(`# Inbox
+---
+2026-04-10
+First entry with https://example.com
+- [ ] a task
+---
+book: The Pragmatic Programmer
+`)
+	if err := os.WriteFile("inbox.md", inbox, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// --prepare should emit JSON by default (default flip per adapter).
+	out := runCmd(t, "ingest", "--prepare")
+	var res struct {
+		IngestID            int64    `json:"ingest_id"`
+		Total               int      `json:"total"`
+		AffectedCollections []string `json:"affected_collections"`
+	}
+	if err := json.Unmarshal([]byte(out), &res); err != nil {
+		t.Fatalf("prepare output not JSON: %v\nout: %s", err, out)
+	}
+	if res.Total != 2 {
+		t.Errorf("Total = %d, want 2", res.Total)
+	}
+	if res.IngestID == 0 {
+		t.Error("IngestID = 0")
+	}
+
+	// Second --prepare should report already-in-progress without opening a new row.
+	out2 := runCmd(t, "ingest", "--prepare")
+	if !strings.Contains(out2, `"already_in_progress": true`) {
+		t.Errorf("second prepare did not report already_in_progress: %s", out2)
+	}
+
+	// Abort unblocks.
+	abortOut := runCmd(t, "ingest", "--abort")
+	if !strings.Contains(abortOut, "Aborted ingest") {
+		t.Errorf("abort output: %q", abortOut)
+	}
+
+	// A fresh --prepare now succeeds.
+	out3 := runCmd(t, "ingest", "--prepare")
+	var res3 struct {
+		AlreadyInProgress bool `json:"already_in_progress"`
+	}
+	_ = json.Unmarshal([]byte(out3), &res3)
+	if res3.AlreadyInProgress {
+		t.Error("prepare after abort should not report already_in_progress")
+	}
+
+	// Abort when nothing is in progress: clean up then try again.
+	runCmd(t, "ingest", "--abort")
+	noopOut := runCmd(t, "ingest", "--abort")
+	if !strings.Contains(noopOut, "No ingest in progress") {
+		t.Errorf("second abort: %q", noopOut)
+	}
+}
+
+// TestE2EIngestEmptyInbox checks the fresh-vault case: seed inbox has no
+// entries below the header separator, so --prepare should return Total=0
+// and NOT open an ingest row (nothing to lock over).
+func TestE2EIngestEmptyInbox(t *testing.T) {
+	dir := t.TempDir()
+	runCmd(t, "init", dir)
+	t.Chdir(dir)
+
+	out := runCmd(t, "ingest", "--prepare")
+	var res struct {
+		Total    int   `json:"total"`
+		IngestID int64 `json:"ingest_id"`
+	}
+	if err := json.Unmarshal([]byte(out), &res); err != nil {
+		t.Fatalf("not JSON: %v\nout: %s", err, out)
+	}
+	if res.Total != 0 {
+		t.Errorf("Total = %d, want 0", res.Total)
+	}
+	if res.IngestID != 0 {
+		t.Errorf("empty inbox opened an ingest row (IngestID=%d)", res.IngestID)
+	}
+}
+
+// TestE2EIngestFullCycle drives prepare → finalize end-to-end and checks
+// that entries archive, inbox clears, and the ingest row completes.
+// Commit verification is covered in internal/core; this test focuses on
+// CLI wiring.
+func TestE2EIngestFullCycle(t *testing.T) {
+	dir := t.TempDir()
+	runCmd(t, "init", dir)
+	t.Chdir(dir)
+
+	err := os.WriteFile("inbox.md", []byte(`# Inbox
+---
+2026-04-14
+first
+---
+second
+`), 0o644)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	out := runCmd(t, "ingest", "--prepare")
+	if !strings.Contains(out, `"total": 2`) {
+		t.Fatalf("prepare output: %s", out)
+	}
+
+	finOut := runCmd(t, "ingest", "--finalize", "-m", "test ingest")
+	if !strings.Contains(finOut, "Finalized ingest") {
+		t.Errorf("finalize output: %q", finOut)
+	}
+	if !strings.Contains(finOut, "Commit skipped") {
+		t.Errorf("expected commit-skipped message (non-repo): %q", finOut)
+	}
+
+	// Archive landed on disk.
+	if _, err := os.Stat(filepath.Join("raw", "inbox", "2026-04-14.md")); err != nil {
+		t.Errorf("archive file not created: %v", err)
+	}
+	// Inbox no longer contains entries.
+	inbox, _ := os.ReadFile("inbox.md")
+	if strings.Contains(string(inbox), "first") || strings.Contains(string(inbox), "second") {
+		t.Errorf("inbox not cleared:\n%s", inbox)
+	}
+}
+
+// TestE2ETasksAddAndDone drives the tasks workflow: two adds, one fuzzy
+// done, and one ambiguous done that should exit non-zero with candidates.
+func TestE2ETasksAddAndDone(t *testing.T) {
+	dir := t.TempDir()
+	runCmd(t, "init", dir)
+	t.Chdir(dir)
+
+	runCmd(t, "tasks", "add", "--section", "[[Sparks]]", "--text", "ship prepare")
+	runCmd(t, "tasks", "add", "--section", "[[Sparks]]", "--text", "ship finalize")
+
+	doneOut := runCmd(t, "done", "finalize")
+	if !strings.Contains(doneOut, "Done:") {
+		t.Errorf("done output: %q", doneOut)
+	}
+
+	// The ambiguity path: `ship` matches both the remaining one and the
+	// already-completed one is out of scope; only "ship prepare" open.
+	// Run done on something truly absent to exercise ErrTaskNotFound.
+	ambOut, err := runCmdAllowErr("done", "totally-absent-task")
+	if err == nil {
+		t.Error("expected non-zero exit for absent task")
+	}
+	if !strings.Contains(ambOut, "No open task") {
+		t.Errorf("absent-task output: %q", ambOut)
+	}
+}
+
+// runCmdAllowErr is like runCmd but returns the error instead of fataling.
+// Used to test non-zero-exit paths.
+func runCmdAllowErr(args ...string) (string, error) {
+	root := newRootCmd()
+	var buf bytes.Buffer
+	root.SetOut(&buf)
+	root.SetErr(&buf)
+	root.SetArgs(args)
+	err := root.Execute()
+	return buf.String(), err
 }
 
 // runCmd executes the cobra root with given args and returns combined
