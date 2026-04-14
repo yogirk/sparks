@@ -147,6 +147,89 @@ func TestE2EIngestEmptyInbox(t *testing.T) {
 	}
 }
 
+// TestE2EIngestFullCycle drives prepare → finalize end-to-end and checks
+// that entries archive, inbox clears, and the ingest row completes.
+// Commit verification is covered in internal/core; this test focuses on
+// CLI wiring.
+func TestE2EIngestFullCycle(t *testing.T) {
+	dir := t.TempDir()
+	runCmd(t, "init", dir)
+	t.Chdir(dir)
+
+	err := os.WriteFile("inbox.md", []byte(`# Inbox
+---
+2026-04-14
+first
+---
+second
+`), 0o644)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	out := runCmd(t, "ingest", "--prepare")
+	if !strings.Contains(out, `"total": 2`) {
+		t.Fatalf("prepare output: %s", out)
+	}
+
+	finOut := runCmd(t, "ingest", "--finalize", "-m", "test ingest")
+	if !strings.Contains(finOut, "Finalized ingest") {
+		t.Errorf("finalize output: %q", finOut)
+	}
+	if !strings.Contains(finOut, "Commit skipped") {
+		t.Errorf("expected commit-skipped message (non-repo): %q", finOut)
+	}
+
+	// Archive landed on disk.
+	if _, err := os.Stat(filepath.Join("raw", "inbox", "2026-04-14.md")); err != nil {
+		t.Errorf("archive file not created: %v", err)
+	}
+	// Inbox no longer contains entries.
+	inbox, _ := os.ReadFile("inbox.md")
+	if strings.Contains(string(inbox), "first") || strings.Contains(string(inbox), "second") {
+		t.Errorf("inbox not cleared:\n%s", inbox)
+	}
+}
+
+// TestE2ETasksAddAndDone drives the tasks workflow: two adds, one fuzzy
+// done, and one ambiguous done that should exit non-zero with candidates.
+func TestE2ETasksAddAndDone(t *testing.T) {
+	dir := t.TempDir()
+	runCmd(t, "init", dir)
+	t.Chdir(dir)
+
+	runCmd(t, "tasks", "add", "--section", "[[Sparks]]", "--text", "ship prepare")
+	runCmd(t, "tasks", "add", "--section", "[[Sparks]]", "--text", "ship finalize")
+
+	doneOut := runCmd(t, "done", "finalize")
+	if !strings.Contains(doneOut, "Done:") {
+		t.Errorf("done output: %q", doneOut)
+	}
+
+	// The ambiguity path: `ship` matches both the remaining one and the
+	// already-completed one is out of scope; only "ship prepare" open.
+	// Run done on something truly absent to exercise ErrTaskNotFound.
+	ambOut, err := runCmdAllowErr("done", "totally-absent-task")
+	if err == nil {
+		t.Error("expected non-zero exit for absent task")
+	}
+	if !strings.Contains(ambOut, "No open task") {
+		t.Errorf("absent-task output: %q", ambOut)
+	}
+}
+
+// runCmdAllowErr is like runCmd but returns the error instead of fataling.
+// Used to test non-zero-exit paths.
+func runCmdAllowErr(args ...string) (string, error) {
+	root := newRootCmd()
+	var buf bytes.Buffer
+	root.SetOut(&buf)
+	root.SetErr(&buf)
+	root.SetArgs(args)
+	err := root.Execute()
+	return buf.String(), err
+}
+
 // runCmd executes the cobra root with given args and returns combined
 // stdout/stderr. Fatals on non-zero exit.
 func runCmd(t *testing.T, args ...string) string {

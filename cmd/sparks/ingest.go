@@ -45,12 +45,34 @@ func runIngest(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("specify exactly one of --prepare, --finalize, --abort")
 	}
 	if finalize {
-		return fmt.Errorf("--finalize is not implemented yet (Week 2 in progress)")
+		return runFinalize(cmd)
 	}
 	if abort {
 		return runAbort(cmd)
 	}
 	return runPrepare(cmd)
+}
+
+func runFinalize(cmd *cobra.Command) error {
+	v, db, err := openVault(".")
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	msg, _ := cmd.Flags().GetString("message")
+	res, err := core.FinalizeIngest(v, db, msg)
+	if err != nil {
+		return err
+	}
+	out := cmd.OutOrStdout()
+	fmt.Fprintf(out, "Finalized ingest %d: %d entries archived across %d date file(s).\n",
+		res.IngestID, res.EntryCount, res.ArchivedFiles)
+	if res.CommitSHA != "" {
+		fmt.Fprintf(out, "Committed %s.\n", res.CommitSHA)
+	} else if res.CommitSkipped != "" {
+		fmt.Fprintf(out, "Commit skipped: %s\n", res.CommitSkipped)
+	}
+	return nil
 }
 
 func boolN(b bool) int {
