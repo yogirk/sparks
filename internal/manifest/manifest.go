@@ -162,6 +162,12 @@ func (d *DB) SchemaVersion() (int, error) {
 	return currentSchemaVersion(d.sql)
 }
 
+// Raw returns the underlying *sql.DB for queries that don't fit a typed
+// helper. Use sparingly; prefer to add a typed method on DB. The escape
+// hatch exists so packages like collections/projects can run a single
+// custom join without bloating the manifest API surface.
+func (d *DB) Raw() *sql.DB { return d.sql }
+
 func boolToInt(b bool) int {
 	if b {
 		return 1

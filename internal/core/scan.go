@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/yogirk/sparks/internal/frontmatter"
+	"github.com/yogirk/sparks/internal/graph"
 	"github.com/yogirk/sparks/internal/manifest"
 	"github.com/yogirk/sparks/internal/vault"
 )
@@ -123,8 +124,67 @@ func Scan(v *vault.Vault, db *manifest.DB) (ScanResult, error) {
 		result.Deleted = len(disappeared)
 	}
 
+	// Second pass: rebuild the wikilink graph now that all frontmatter is
+	// in place. We need the full page set to resolve links (title →
+	// path, alias → path), so this has to run after phase one finishes.
+	if err := rebuildLinks(v, db); err != nil {
+		result.Errors = append(result.Errors, ScanError{Path: "<links>", Err: err.Error()})
+	}
+
 	result.Duration = time.Since(start)
 	return result, nil
+}
+
+// rebuildLinks walks every tracked wiki page, extracts `[[...]]` targets
+// from its body, resolves them against the full page set, and replaces
+// the manifest's wikilink edges for that page. Called as the second
+// phase of Scan.
+func rebuildLinks(v *vault.Vault, db *manifest.DB) error {
+	pages, err := db.ListPages()
+	if err != nil {
+		return err
+	}
+	refs := make([]graph.PageRef, 0, len(pages))
+	for _, p := range pages {
+		refs = append(refs, graph.PageRef{Path: p.Path, Title: p.Title, Aliases: p.Aliases})
+	}
+	resolver := graph.NewResolver(refs)
+
+	for _, p := range pages {
+		body, err := readBody(filepath.Join(v.Root, p.Path))
+		if err != nil {
+			return err
+		}
+		targets := graph.ExtractLinks(body)
+		edges := make([]manifest.WikilinkEdge, 0, len(targets))
+		for _, t := range targets {
+			edges = append(edges, manifest.WikilinkEdge{
+				Source:   p.Path,
+				Target:   t,
+				Resolved: resolver.Resolve(t),
+			})
+		}
+		if err := db.ReplaceLinks(p.Path, edges); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// readBody reads a markdown file and returns the body portion (everything
+// after the frontmatter block, or the full file if no frontmatter).
+func readBody(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	_, body, err := frontmatter.ParseBytes(data)
+	if err != nil {
+		// No frontmatter: treat the entire file as body. Wikilinks in a
+		// frontmatter-less page are still meaningful to the graph.
+		return string(data), nil
+	}
+	return string(body), nil
 }
 
 func hashFile(path string) (string, error) {
