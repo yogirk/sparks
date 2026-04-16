@@ -1,0 +1,76 @@
+{{define "page.html"}}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} — {{.VaultName}}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="layout-page">
+<nav class="topbar">
+  <a href="/" class="topbar-name">{{.VaultName}}</a>
+  <span class="topbar-sep">·</span>
+  <span class="topbar-crumb">{{.Path}}</span>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar sidebar-left">
+    {{range .Nav}}
+    <section class="nav-group">
+      <h3 class="panel-title">{{.Label}} <span class="panel-count">{{.Count}}</span></h3>
+      <ul class="nav-list">
+        {{range .Pages}}<li><a href="{{.Href}}">{{.Title}}</a></li>{{end}}
+      </ul>
+    </section>
+    {{end}}
+  </aside>
+
+  <main class="content">
+    <article class="page">
+      <h1>{{.Title}}</h1>
+      {{.Body}}
+    </article>
+  </main>
+
+  <aside class="sidebar sidebar-right">
+    <section class="panel meta-panel">
+      <h3 class="panel-title">On this page</h3>
+      <dl class="meta">
+        {{if .Meta.Type}}<dt>type</dt><dd>{{.Meta.Type}}</dd>{{end}}
+        {{if .Meta.Maturity}}<dt>maturity</dt><dd>{{.Meta.Maturity}}</dd>{{end}}
+        {{if .Meta.Created}}<dt>created</dt><dd>{{.Meta.Created}}</dd>{{end}}
+        {{if .Meta.Updated}}<dt>updated</dt><dd>{{.Meta.Updated}}</dd>{{end}}
+      </dl>
+      {{if .Meta.Tags}}
+      <ul class="tag-cloud inline">
+        {{range .Meta.Tags}}<li><a href="{{.Href}}" class="tag-chip">{{.Name}}</a></li>{{end}}
+      </ul>
+      {{end}}
+      {{if .Meta.Aliases}}
+      <div class="alias-list">
+        <span class="panel-title">aliases</span>
+        <span>{{range $i, $a := .Meta.Aliases}}{{if $i}}, {{end}}{{$a}}{{end}}</span>
+      </div>
+      {{end}}
+      {{if .Meta.Sources}}
+      <div class="source-list">
+        <span class="panel-title">sources</span>
+        <ul>{{range .Meta.Sources}}<li><code>{{.}}</code></li>{{end}}</ul>
+      </div>
+      {{end}}
+    </section>
+
+    {{if .Backlinks}}
+    <section class="panel">
+      <h3 class="panel-title">Referenced by <span class="panel-count">{{len .Backlinks}}</span></h3>
+      <ul class="backlinks">
+        {{range .Backlinks}}<li><a href="{{.Href}}">{{.Title}}</a></li>{{end}}
+      </ul>
+    </section>
+    {{end}}
+  </aside>
+</div>
+
+<footer><a href="/">← index</a></footer>
+</body>
+</html>{{end}}

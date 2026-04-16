@@ -1,0 +1,64 @@
+{{define "tag.html"}}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#{{.Tag}} — {{.VaultName}}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="layout-page">
+<nav class="topbar">
+  <a href="/" class="topbar-name">{{.VaultName}}</a>
+  <span class="topbar-sep">·</span>
+  <span class="topbar-crumb">tags / {{.Tag}}</span>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar sidebar-left">
+    {{range .Nav}}
+    <section class="nav-group">
+      <h3 class="panel-title">{{.Label}} <span class="panel-count">{{.Count}}</span></h3>
+      <ul class="nav-list">
+        {{range .Pages}}<li><a href="{{.Href}}">{{.Title}}</a></li>{{end}}
+      </ul>
+    </section>
+    {{end}}
+  </aside>
+
+  <main class="content">
+    <article class="page">
+      <h1>#{{.Tag}}</h1>
+      <p class="lede">{{len .Pages}} page{{if ne (len .Pages) 1}}s{{end}} tagged.</p>
+      {{if .Pages}}
+      <ul class="page-list">
+        {{range .Pages}}<li><a href="{{.Href}}">{{.Title}}</a></li>{{end}}
+      </ul>
+      {{else}}
+      <p class="muted">No pages with this tag yet.</p>
+      {{end}}
+    </article>
+  </main>
+
+  <aside class="sidebar sidebar-right">
+    {{if .Tags}}
+    <section class="panel">
+      <h3 class="panel-title">All tags</h3>
+      <ul class="tag-cloud">
+        {{range .Tags}}<li><a href="{{.Href}}" class="tag-chip {{if eq .Name $.Tag}}tag-chip-active{{end}}">{{.Name}} <span class="tag-count">{{.Count}}</span></a></li>{{end}}
+      </ul>
+    </section>
+    {{end}}
+    {{if .Recent}}
+    <section class="panel">
+      <h3 class="panel-title">Recently updated</h3>
+      <ul class="recent">
+        {{range .Recent}}<li><a href="{{.Href}}">{{.Title}}</a><span class="meta">{{.Updated}}</span></li>{{end}}
+      </ul>
+    </section>
+    {{end}}
+  </aside>
+</div>
+
+<footer><a href="/">← index</a></footer>
+</body>
+</html>{{end}}

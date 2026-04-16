@@ -168,6 +168,18 @@ sparks index           # rebuild wiki/index.md preserving your descriptions
 
 Lint will surface real data hygiene issues — pages nobody links to, frontmatter typos, source files that disappeared. Most are small fixes; ask your agent to clean them up.
 
+### Browse your vault
+
+Don't want to install Obsidian? Sparks has a built-in viewer:
+
+```bash
+sparks view --open     # opens http://127.0.0.1:3030
+```
+
+Three-column layout: navigation on the left, your wiki page in the center (serif typography, narrow measure), metadata + backlinks + tags on the right. Wikilinks are live — click through your knowledge graph the same way an agent traverses it.
+
+Read-only. Edits happen in your editor or via the agent. Changes show up on next page refresh.
+
 ---
 
 ## 5. MCP integration (optional, advanced)

@@ -4,6 +4,26 @@ All notable changes to Sparks. The format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-16
+
+### Added
+
+- `sparks view [--addr host:port] [--open]` — built-in local wiki viewer. Renders the vault's wiki pages as HTML in your browser. No Obsidian, no external tools, no config. Launches on `127.0.0.1:3030` by default.
+- Three-column layout: left sidebar (vault navigation grouped by page type with counts), center reading column (serif typography, ~68ch narrow measure), right sidebar (page metadata, tags, backlinks).
+- Wikilink resolution in rendered HTML: `[[Target]]`, `[[Target|display]]`, and `[[Target#anchor]]` all resolve via the same title/alias/filename resolver that powers lint. Broken links styled with dashed red so you see gaps immediately.
+- Tag system: every tag in frontmatter becomes a clickable chip linking to `/tags/{tag}`. Tag page shows all pages with that tag + the full tag cloud.
+- Backlinks panel ("Referenced by") on every page: shows which other pages link here, excluding index.md.
+- "Recently updated" panel on the index page: top 10 pages by `updated:` frontmatter date.
+- Page metadata panel: type, maturity, created, updated, tags, aliases, sources, all displayed in the right sidebar.
+- goldmark (CommonMark + GFM) for markdown rendering. Tables, task lists, fenced code blocks all render correctly.
+- Read-only by design. File changes picked up on next page refresh (per-request manifest query, no watcher, no cache).
+
+### Architecture
+
+- `internal/view/` package: render pipeline (goldmark + wikilink preprocessor), HTTP server, embedded templates + CSS via `//go:embed`.
+- Same thin-adapter discipline as CLI and MCP: zero business logic in the view package; it calls `internal/core` and `internal/graph` for everything.
+- goldmark v1.8.2 added as a dependency (~1 MB binary size impact).
+
 ## [0.1.0] - 2026-04-14
 
 **Pre-alpha first release.** The internal packages are tested (~75% line coverage, race-clean across 12 packages on a CI matrix of macOS/Linux/Windows). The end-to-end agent-driven workflow has been dogfooded on the maintainer's vault but is not 100% manually tested. Expect rough edges. [Open issues](https://github.com/yogirk/sparks/issues) freely — that's the fastest way to harden the v0.x line.

@@ -1,0 +1,63 @@
+{{define "index.html"}}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.VaultName}}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="layout-index">
+<nav class="topbar">
+  <strong class="topbar-name">{{.VaultName}}</strong>
+  <span class="topbar-sep">·</span>
+  <span class="topbar-crumb">index</span>
+</nav>
+
+<div class="layout">
+  <main class="content">
+    <article class="index">
+      <h1>{{.VaultName}}</h1>
+      <p class="lede">
+        {{range $i, $s := .Sections}}{{if $i}} · {{end}}{{index $.Counts $s.Type}}&nbsp;{{$s.Label}}{{end}}
+      </p>
+
+      {{range .Sections}}
+      <section class="type-section">
+        <h2>{{.Label}}</h2>
+        <ul class="page-list">
+          {{range .Pages}}<li><a href="{{.Href}}">{{.Title}}</a></li>{{end}}
+        </ul>
+      </section>
+      {{end}}
+    </article>
+  </main>
+
+  <aside class="sidebar sidebar-right">
+    {{if .Recent}}
+    <section class="panel">
+      <h3 class="panel-title">Recently updated</h3>
+      <ul class="recent">
+        {{range .Recent}}
+        <li>
+          <a href="{{.Href}}">{{.Title}}</a>
+          <span class="meta">{{.Updated}}</span>
+        </li>
+        {{end}}
+      </ul>
+    </section>
+    {{end}}
+
+    {{if .Tags}}
+    <section class="panel">
+      <h3 class="panel-title">Tags</h3>
+      <ul class="tag-cloud">
+        {{range .Tags}}<li><a href="{{.Href}}" class="tag-chip" data-count="{{.Count}}">{{.Name}} <span class="tag-count">{{.Count}}</span></a></li>{{end}}
+      </ul>
+    </section>
+    {{end}}
+  </aside>
+</div>
+
+<footer>served by <code>sparks view</code></footer>
+</body>
+</html>{{end}}

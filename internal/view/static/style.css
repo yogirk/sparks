@@ -1,0 +1,417 @@
+/*
+ * Sparks view — typography-first three-column theme.
+ *
+ * Principles:
+ *   - Reading column stays ~68ch, serif, airy. The experience of
+ *     reading the page is still the anchor.
+ *   - Left + right sidebars provide context without fighting the
+ *     reading column for attention: smaller type, muted color,
+ *     sans-serif for contrast.
+ *   - On narrow screens everything stacks single-column, reading
+ *     column first.
+ */
+
+:root {
+  --text: #1c1b17;
+  --muted: #6b665d;
+  --faint: #a49f94;
+  --bg: #fbfaf6;
+  --bg-offset: #f3f1ea;
+  --bg-panel: #f7f5ee;
+  --link: #2f4a72;
+  --link-hover: #1a2f4e;
+  --broken: #a33;
+  --rule: #e6e2d8;
+  --accent: #854d21;
+  --measure: 68ch;
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'SF Mono', 'Menlo', Consolas, 'Liberation Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--bg); color: var(--text); }
+
+body {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- topbar ---- */
+
+nav.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 1rem 2rem;
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  color: var(--muted);
+  border-bottom: 1px solid var(--rule);
+  background: var(--bg);
+}
+.topbar-name {
+  color: var(--text);
+  font-weight: 600;
+  border: 0;
+  text-decoration: none;
+}
+.topbar-sep { color: var(--faint); }
+.topbar-crumb {
+  font-family: var(--mono);
+  color: var(--muted);
+}
+
+/* ---- three-column layout ---- */
+
+.layout {
+  display: grid;
+  gap: 3rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 4rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Desktop: 3 columns. The left sidebar is optional per page type so
+   we use explicit classes to opt in. */
+@media (min-width: 1040px) {
+  .layout {
+    grid-template-columns: 14rem minmax(0, var(--measure)) 15rem;
+    justify-content: center;
+  }
+  .layout-index .layout {
+    /* Index page: no left sidebar, center is wider page list. */
+    grid-template-columns: minmax(0, var(--measure)) 15rem;
+  }
+}
+
+/* Hide left sidebar on narrow screens; right sidebar stacks below. */
+@media (max-width: 1039px) {
+  .sidebar-left { display: none; }
+  .sidebar-right {
+    border-top: 1px solid var(--rule);
+    padding-top: 2rem;
+    margin-top: 2rem;
+  }
+}
+
+.content { min-width: 0; }
+
+/* ---- sidebars ---- */
+
+.sidebar {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.sidebar a {
+  color: var(--text);
+  border: 0;
+  text-decoration: none;
+}
+.sidebar a:hover { color: var(--link-hover); text-decoration: underline; }
+
+.sidebar .panel,
+.sidebar .nav-group {
+  margin-bottom: 2.25rem;
+}
+
+.panel-title {
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 0.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+.panel-count {
+  font-weight: 400;
+  color: var(--faint);
+  font-size: 0.85em;
+}
+
+.sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sidebar .nav-list li,
+.sidebar .backlinks li,
+.sidebar .recent li {
+  padding: 0.18rem 0;
+  border-bottom: 1px solid transparent;
+}
+.sidebar .nav-list a {
+  display: block;
+  padding: 0.1rem 0;
+  color: var(--text);
+  font-weight: 400;
+}
+.sidebar .nav-list a:hover {
+  color: var(--link-hover);
+}
+
+/* Highlight the current page in the left nav — requires JS to know
+   which page is current; we leave a hook for future enhancement. */
+
+.sidebar .recent li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+.sidebar .recent .meta {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.sidebar .backlinks a::before {
+  content: "→ ";
+  color: var(--faint);
+}
+
+/* ---- reading column ---- */
+
+.content article {
+  max-width: var(--measure);
+}
+
+h1, h2, h3, h4 {
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  line-height: 1.25;
+  color: var(--text);
+}
+h1 {
+  font-size: 2rem;
+  margin: 0 0 1rem;
+  line-height: 1.15;
+}
+h2 {
+  font-size: 1.35rem;
+  margin: 2.5rem 0 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+h3 {
+  font-size: 1.1rem;
+  margin: 1.75rem 0 0.25rem;
+}
+h4 {
+  font-size: 1rem;
+  margin: 1.25rem 0 0;
+  color: var(--muted);
+}
+
+p, ul, ol, blockquote { margin: 0.75em 0; }
+
+p { text-wrap: pretty; }
+
+.lede {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.muted { color: var(--muted); }
+
+/* ---- links (reading column) ---- */
+
+.content a {
+  color: var(--link);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--link) 30%, transparent);
+  transition: border-color 0.1s ease;
+}
+.content a:hover {
+  color: var(--link-hover);
+  border-bottom-color: currentColor;
+}
+
+.broken-link {
+  color: var(--broken);
+  border-bottom: 1px dashed var(--broken);
+  cursor: help;
+}
+
+/* ---- lists in reading column ---- */
+
+.content ul, .content ol { padding-left: 1.3em; }
+.content li { margin: 0.15em 0; }
+
+ul.page-list {
+  list-style: none;
+  padding-left: 0;
+  column-count: 2;
+  column-gap: 2rem;
+}
+ul.page-list li { margin: 0.2em 0; break-inside: avoid; }
+@media (max-width: 600px) {
+  ul.page-list { column-count: 1; }
+}
+
+.type-section { margin-top: 2.5rem; }
+
+/* ---- blockquotes, code, tables ---- */
+
+blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  color: var(--muted);
+  font-style: italic;
+}
+blockquote p { margin: 0.5em 0; }
+
+code, kbd, samp, pre { font-family: var(--mono); font-size: 0.88em; }
+:not(pre) > code {
+  background: var(--bg-offset);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  color: var(--accent);
+}
+pre {
+  background: var(--bg-offset);
+  padding: 1rem 1.15rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  line-height: 1.5;
+  border: 1px solid var(--rule);
+  font-size: 0.82rem;
+}
+pre code { color: inherit; background: none; padding: 0; }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+th, td {
+  padding: 0.45rem 0.7rem;
+  text-align: left;
+  border-bottom: 1px solid var(--rule);
+}
+th { font-weight: 600; border-bottom-width: 2px; }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 2.5rem auto;
+  width: 30%;
+}
+
+/* ---- meta panel ---- */
+
+.meta-panel dl.meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.75rem;
+  margin: 0 0 0.75rem;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+}
+.meta-panel dt {
+  color: var(--faint);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  align-self: center;
+}
+.meta-panel dd {
+  margin: 0;
+  color: var(--text);
+}
+
+.alias-list, .source-list {
+  margin-top: 0.9rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.alias-list .panel-title,
+.source-list .panel-title {
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.source-list ul { list-style: none; padding: 0; }
+.source-list li code {
+  font-size: 0.72rem;
+  word-break: break-all;
+  background: var(--bg-offset);
+  color: var(--muted);
+  padding: 0.08em 0.3em;
+  border-radius: 2px;
+}
+
+/* ---- tag cloud / chips ---- */
+
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.3rem 0 0;
+}
+.tag-cloud.inline { margin-top: 0.3rem; }
+.tag-chip {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--bg-offset);
+  color: var(--text) !important;
+  text-decoration: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.tag-chip:hover {
+  background: var(--bg-panel);
+  border-color: var(--rule);
+  text-decoration: none !important;
+}
+.tag-chip-active {
+  background: var(--link);
+  color: var(--bg) !important;
+}
+.tag-count {
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+  margin-left: 0.15rem;
+}
+.tag-chip-active .tag-count { color: color-mix(in srgb, var(--bg) 70%, transparent); }
+
+/* ---- footer ---- */
+
+footer {
+  margin: 3rem auto 2rem;
+  padding: 1.5rem 2rem 0;
+  max-width: 1400px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  color: var(--faint);
+  text-align: center;
+}
+footer a {
+  color: var(--muted);
+  text-decoration: none;
+  border: 0;
+}
+footer a:hover { color: var(--link-hover); text-decoration: underline; }
+footer code { background: none; color: var(--muted); padding: 0; font-size: 0.9em; }

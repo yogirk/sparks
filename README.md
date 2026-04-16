@@ -114,18 +114,35 @@ sparks query --title|--alias|--tag|--type|--maturity|--linked-from|--links-to|--
 sparks affected [--json]
 sparks describe
 sparks serve     # MCP stdio server with all 11 operations as tools
+sparks view      # local HTTP wiki viewer on localhost:3030
 ```
 
 Run `sparks <command> --help` for the full flag list.
 
+## Browse your vault locally
+
+No Obsidian? No problem. `sparks view` ships a zero-dependency local wiki viewer inside the binary. One command, no config:
+
+```bash
+cd ~/Projects/notes/my-vault
+sparks view --open     # opens http://127.0.0.1:3030 in your browser
+```
+
+![sparks view rendering a wiki page](docs/view.png)
+
+Three-column layout: left sidebar (vault navigation by page type), center reading column (serif typography, narrow measure, resolved wikilinks), right sidebar (page metadata, tags, backlinks). Broken wikilinks are styled distinctly so you spot gaps at a glance.
+
+Read-only by design. Edits happen in your editor or via your agent. File changes show up on the next page refresh, no watcher or restart needed.
+
 ## Working with agents
 
-Sparks ships two adapter surfaces over the same internal core:
+Sparks ships three adapter surfaces over the same internal core:
 
 - **CLI.** Thin cobra adapters. Agents shell out and parse JSON.
 - **MCP stdio server.** `sparks serve` exposes the same operations as MCP tools (`sparks_scan`, `sparks_prepare_ingest`, `sparks_lint`, `sparks_query`, etc.). Any harness that speaks MCP can drive a vault without shell-out.
+- **Web viewer.** `sparks view` renders wiki pages as HTML locally. Not agent-facing, but the tool you use to browse what agents built.
 
-Both surfaces stay in sync because they call the same `internal/core` package. An architecture-guard test fails the build if business logic leaks into either adapter.
+All three surfaces stay in sync because they call the same `internal/core` package. An architecture-guard test fails the build if business logic leaks into any adapter.
 
 ## Design philosophy
 
