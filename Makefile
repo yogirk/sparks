@@ -1,4 +1,4 @@
-.PHONY: build test test-race test-cover lint fmt vet tidy install clean help
+.PHONY: build test test-race test-cover lint fmt vet tidy install clean help hooks
 
 BIN := sparks
 PKG := ./...
@@ -14,6 +14,7 @@ help:
 	@echo "  make fmt         - gofmt -w ."
 	@echo "  make tidy        - go mod tidy"
 	@echo "  make clean       - remove binary + coverage artifacts"
+	@echo "  make hooks       - point this clone at .githooks/ (commit-msg AI-attribution guard)"
 
 build:
 	go build -o $(BIN) ./cmd/sparks
@@ -43,6 +44,10 @@ tidy:
 
 clean:
 	rm -f $(BIN) cover.out
+
+hooks:
+	git config core.hooksPath .githooks
+	@echo "git hooks: pointing at .githooks/"
 
 .PHONY: sync-contract verify-contract
 
