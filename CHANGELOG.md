@@ -4,6 +4,18 @@ All notable changes to Sparks. The format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-21
+
+### Added
+
+- `sparks brief [--days N] [--json]` — plumbing for weekly synthesis. Emits a structured snapshot of recent vault activity (log entries, new raw captures, wiki pages updated in the window, stale / seed-orphan / thin revisit signals, open task count) so an agent can write the brief. Synthesis stays with the agent.
+- `sparks_brief` exposed as an MCP tool alongside the other 11 operations (now 12 total).
+- Contract now documents "The Brief Contract" and adds a Weekly brief section to the embedded agent instruction template — new vaults initialized with `sparks init --agent X` get the directive automatically.
+
+### Fixed
+
+- `sparks brief` window filter compared `time.Parse` UTC values against a local-tz cutoff, which dropped in-window entries for users west of UTC. Fixed to compare as YYYY-MM-DD strings so boundaries align with calendar dates.
+
 ## [0.2.0] - 2026-04-16
 
 ### Added

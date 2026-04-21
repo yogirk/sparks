@@ -80,6 +80,11 @@ func registerTools(s *server.MCPServer) {
 		mcpgo.WithString("text", mcpgo.Required(), mcpgo.Description("Task text. Will be prefixed with `- [ ] `.")),
 	), handleTasksAdd)
 
+	s.AddTool(mcpgo.NewTool("sparks_brief",
+		mcpgo.WithDescription("Emit a structured snapshot of recent vault activity (log entries, new raw, updated wiki, revisit signals, open tasks) so the agent can synthesize a weekly brief. Default window: 7 days."),
+		mcpgo.WithNumber("days", mcpgo.Description("Window size in calendar days. Omit or 0 for default (7).")),
+	), handleBrief)
+
 	s.AddTool(mcpgo.NewTool("sparks_query",
 		mcpgo.WithDescription("Structured lookup over the manifest. Combine filters via AND. NOT semantic search."),
 		mcpgo.WithString("title", mcpgo.Description("Exact title (case-insensitive).")),
@@ -205,6 +210,17 @@ func handleTasksAdd(ctx context.Context, req mcpgo.CallToolRequest) (*mcpgo.Call
 	}
 	res, err := core.TasksAdd(v, section, text)
 	return jsonOrError(res, err)
+}
+
+func handleBrief(ctx context.Context, req mcpgo.CallToolRequest) (*mcpgo.CallToolResult, error) {
+	v, db, cleanup, err := openVaultDot()
+	if err != nil {
+		return errorResult(err), nil
+	}
+	defer cleanup()
+	days := req.GetInt("days", 0)
+	rep, err := core.Brief(v, db, days)
+	return jsonOrError(rep, err)
 }
 
 func handleQuery(ctx context.Context, req mcpgo.CallToolRequest) (*mcpgo.CallToolResult, error) {

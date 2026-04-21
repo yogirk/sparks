@@ -135,6 +135,20 @@ Collection regeneration is deterministic. Never edit a regenerated collection pa
 
 Semantic search, keyword search over content, and synthesis are **agent work**. The CLI does not understand content.
 
+## The Brief Contract
+
+`sparks brief` is plumbing for weekly synthesis. It returns a structured snapshot of recent activity — synthesis stays with the agent.
+
+What the CLI gathers (default window: last 7 calendar days, tunable via `--days`):
+
+- **log entries** — blocks from `wiki/log.md` whose `## [YYYY-MM-DD]` date falls in the window
+- **new raw** — files under `raw/` with an mtime in the window, excluding CLI-owned `raw/inbox/` and `raw/archive/`
+- **updated wiki** — pages whose frontmatter `updated:` falls in the window
+- **revisit** — stale pages, seed pages with no incoming links, thin pages (deterministic signals shared with `sparks lint`)
+- **open tasks** — count + preview from `wiki/collections/Tasks.md`
+
+The agent's job: call `sparks brief --json`, read the snapshot, identify patterns, connections to open projects, and things worth revisiting, and write the brief to stdout. Do not save unless the human asks.
+
 ## The Lint Contract
 
 `sparks lint` is deterministic. It reports:
@@ -181,6 +195,14 @@ synthesizing across pages.
 1. `sparks query` for structured lookup (by title, tag, type, link graph).
 2. Read the matching wiki pages.
 3. Synthesize the answer with `[[wikilink]]` citations.
+
+## Weekly brief
+
+1. `sparks brief --json` (or `--days N` for a different window).
+2. Read the snapshot: recent log entries, new raw captures, updated wiki
+   pages, stale / seed-orphan / thin pages, open tasks.
+3. Write a synthesis to stdout — patterns, connections to open projects,
+   things worth revisiting. Do not save to a file unless asked.
 
 ## Task management
 

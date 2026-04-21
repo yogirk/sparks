@@ -112,8 +112,9 @@ sparks collections regen [name...] [--dry-run] [--json]
 sparks index [--dry-run]
 sparks query --title|--alias|--tag|--type|--maturity|--linked-from|--links-to|--stale|--orphan
 sparks affected [--json]
+sparks brief [--days N] [--json]
 sparks describe
-sparks serve     # MCP stdio server with all 11 operations as tools
+sparks serve     # MCP stdio server with all 12 operations as tools
 sparks view      # local HTTP wiki viewer on localhost:3030
 ```
 

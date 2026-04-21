@@ -218,6 +218,38 @@ func TestE2ETasksAddAndDone(t *testing.T) {
 	}
 }
 
+// TestE2EBrief drives `sparks brief` in both human and JSON modes,
+// proving the adapter wires the core gathering into the CLI with no
+// vault present beyond a fresh init.
+func TestE2EBrief(t *testing.T) {
+	dir := t.TempDir()
+	runCmd(t, "init", dir)
+	t.Chdir(dir)
+	runCmd(t, "scan")
+
+	out := runCmd(t, "brief")
+	for _, want := range []string{"brief: last 7 days", "log entries:", "new raw:", "updated wiki:", "open tasks:"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("brief human output missing %q: %q", want, out)
+		}
+	}
+
+	jsonOut := runCmd(t, "brief", "--json", "--days", "14")
+	var rep struct {
+		Window struct {
+			Days int `json:"days"`
+		} `json:"window"`
+		LogEntries  []any `json:"log_entries"`
+		UpdatedWiki []any `json:"updated_wiki"`
+	}
+	if err := json.Unmarshal([]byte(jsonOut), &rep); err != nil {
+		t.Fatalf("brief --json not JSON: %v\nout: %s", err, jsonOut)
+	}
+	if rep.Window.Days != 14 {
+		t.Errorf("Window.Days = %d, want 14", rep.Window.Days)
+	}
+}
+
 // runCmdAllowErr is like runCmd but returns the error instead of fataling.
 // Used to test non-zero-exit paths.
 func runCmdAllowErr(args ...string) (string, error) {

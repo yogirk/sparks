@@ -155,6 +155,20 @@ sparks done "thing to do"   # fuzzy-matches; ambiguous matches list candidates
 
 Or ask the agent: "mark X as done."
 
+### Weekly brief
+
+Ask the agent: "give me a brief of this past week." Under the hood it
+runs `sparks brief --json` to pull the recent log entries, new raw
+captures, updated wiki pages, things worth revisiting, and open tasks,
+then writes the synthesis. Synthesis is the agent's job; Sparks only
+gathers the signals.
+
+```bash
+sparks brief              # human summary
+sparks brief --json       # structured snapshot for agent synthesis
+sparks brief --days 30    # custom window
+```
+
 ### Health checks
 
 Once a week or so, run:

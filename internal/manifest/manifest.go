@@ -162,6 +162,41 @@ func (d *DB) SchemaVersion() (int, error) {
 	return currentSchemaVersion(d.sql)
 }
 
+// FilesSince returns non-deleted files whose filesystem mtime is at or
+// after since. An optional pathPrefix (e.g. "raw/") restricts results.
+// Used by `sparks brief` to surface recently-captured files.
+func (d *DB) FilesSince(pathPrefix string, since time.Time) ([]FileRecord, error) {
+	q := `SELECT path, hash, size, mtime, scan_time, ingested, deleted
+	        FROM files
+	       WHERE deleted = 0 AND mtime >= ?`
+	args := []interface{}{since.Format(time.RFC3339Nano)}
+	if pathPrefix != "" {
+		q += ` AND path LIKE ?`
+		args = append(args, pathPrefix+"%")
+	}
+	q += ` ORDER BY mtime DESC`
+	rows, err := d.sql.Query(q, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []FileRecord
+	for rows.Next() {
+		var fr FileRecord
+		var mtimeStr, scanTimeStr string
+		var ingested, deleted int
+		if err := rows.Scan(&fr.Path, &fr.Hash, &fr.Size, &mtimeStr, &scanTimeStr, &ingested, &deleted); err != nil {
+			return nil, err
+		}
+		fr.MTime, _ = time.Parse(time.RFC3339Nano, mtimeStr)
+		fr.ScanTime, _ = time.Parse(time.RFC3339Nano, scanTimeStr)
+		fr.Ingested = ingested == 1
+		fr.Deleted = deleted == 1
+		out = append(out, fr)
+	}
+	return out, rows.Err()
+}
+
 // Raw returns the underlying *sql.DB for queries that don't fit a typed
 // helper. Use sparingly; prefer to add a typed method on DB. The escape
 // hatch exists so packages like collections/projects can run a single
