@@ -2,6 +2,8 @@
 
 You have an AI coding harness — Claude Code, Codex CLI, Gemini CLI, or something MCP-capable. You want it to maintain a personal knowledge base for you. This guide gets you from zero to working in about ten minutes.
 
+Sparks productizes the [Karpathy LLM-wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). If the vault structure or the raw/wiki split feels unfamiliar as you go, read that gist first — it's the mental model this runtime assumes.
+
 The model does the thinking. Sparks does the plumbing. You just capture.
 
 ---

@@ -96,6 +96,21 @@ Post-v1 work tracked here. v1 scope is frozen in `~/.gstack/projects/sparks/rk-u
 
 ---
 
+## Decouple capture from ingest (post-v2, demand-driven)
+
+**What.** Let `sparks ingest --prepare` accept sources other than `inbox.md`. A `--source` flag taking a file path, stdin, or (later) a URL — so capture isn't wedded to one append-only markdown file at the vault root.
+
+**Why.** `inbox.md` is one capture cadence among many. Someone running Sparks on meeting notes, a Slack export, a `~/Dropbox/captures/` folder, or piped clippings from a browser extension shouldn't have to pre-concatenate everything into `inbox.md` first. The ingest protocol (prepare → agent writes pages → finalize) is already source-agnostic under the hood; the CLI just hardcodes the source today.
+
+**Pros.** Generalizes Sparks beyond the maintainer's capture habit without touching the core shape. Opens the door to non-text sources later (RSS, email, clippings) by keeping the source interface a thin seam.
+**Cons.** Multiplies "what does finalize archive to?" edge cases — today we move `inbox.md` to `raw/inbox/YYYY-MM-DD.md` atomically. With arbitrary sources, archive semantics need to be per-source-type (copy? move? nothing?). Another config surface.
+
+**Context.** Raised during the pre-release positioning review (2026-04-22). The positioning is already harness-agnostic; this would make it *capture-agnostic* too. Not v1 and not v2 — tracked here so we notice if strangers start asking for it. The right trigger is a concrete second capture mode from a real user, not speculation.
+
+**Depends on.** v1 shipped, real external adoption, and at least one user describing a capture flow that `inbox.md` doesn't fit.
+
+---
+
 ## Multi-user coordination (v2+, probably never)
 
 **What.** True multi-writer support (multiple humans editing the same vault simultaneously).

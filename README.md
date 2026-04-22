@@ -4,6 +4,12 @@
 
 Not a notes app. Not an editor. Not a sync tool. A runtime.
 
+## What is an LLM wiki?
+
+An LLM wiki is a personal knowledge base with three layers: **raw** sources you capture (notes, bookmarks, clippings), a **wiki** of derived pages an LLM maintains (entities, concepts, synthesis), and a **schema** — prose instructions telling the agent how the whole thing fits together. You capture. The agent reads, categorizes, links, summarizes, and keeps the graph consistent. You read the result in any markdown viewer.
+
+This pattern is [Andrej Karpathy's](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). Sparks productizes it as a runtime: the mechanical parts of the schema move into a Go binary so the agent isn't re-interpreting bookkeeping rules as prose on every run. If you're new to the model, read Karpathy's gist first — this README assumes it.
+
 ## Why
 
 Personal knowledge management tools are designed for human interaction. The emerging pattern is different: humans capture, AI agents maintain. When the operational logic lives as prose in one agent's config file (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`), the agent ends up doing two very different kinds of work:
@@ -149,7 +155,7 @@ All three surfaces stay in sync because they call the same `internal/core` packa
 
 The harness should be thin. Tools should be specialized. Let models reason and process language. Let binaries handle file hashing, frontmatter parsing, and link graph traversal. When the runtime encodes the contract, a new agent can drive the vault without anyone rewriting prose.
 
-The shape (entity / concept / summary / synthesis / collection page types, fixed frontmatter schema, eight collection extractors) is hardcoded in v1. This is the [Karpathy LLM wiki pattern](https://gist.github.com/karpathy/442a6bf5559148d1f0681fc3aa3d83d6) productized as a runtime. v2 may make the shape declarative if there's demand — opinionated first, generalize on signal.
+The shape (entity / concept / summary / synthesis / collection page types, fixed frontmatter schema, eight collection extractors) is hardcoded in v1 — the Karpathy LLM-wiki pattern, productized. v2 may make the shape declarative if there's demand — opinionated first, generalize on signal.
 
 Background notes:
 

@@ -73,7 +73,7 @@ updated: YYYY-MM-DD  # required
 
 - **entity** — a person, tool, project, or company: `wiki/entities/BigQuery.md`
 - **concept** — a theme, pattern, or technique: `wiki/concepts/Zero-Friction Capture.md`
-- **summary** — a distilled source summary: `wiki/summaries/Karpathy LLM Wiki.md`
+- **summary** — a distilled source summary: `wiki/summaries/Superlinear Returns.md`
 - **synthesis** — cross-cutting analysis or comparison: `wiki/synthesis/AI Agent Landscape.md`
 - **collection** — auto-generated index of a content type: `wiki/collections/Quotes.md`
 
