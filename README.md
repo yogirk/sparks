@@ -4,6 +4,8 @@
 
 Not a notes app. Not an editor. Not a sync tool. A runtime.
 
+**New here?** [GETTING_STARTED.md](GETTING_STARTED.md) is a ten-minute walkthrough from install to first ingest. The rest of this README is reference.
+
 ## What is an LLM wiki?
 
 An LLM wiki is a personal knowledge base with three layers: **raw** sources you capture (notes, bookmarks, clippings), a **wiki** of derived pages an LLM maintains (entities, concepts, synthesis), and a **schema** — prose instructions telling the agent how the whole thing fits together. You capture. The agent reads, categorizes, links, summarizes, and keeps the graph consistent. You read the result in any markdown viewer.
@@ -166,7 +168,7 @@ Background notes:
 
 ## Status
 
-v0.1.0 first release. Used in production against the maintainer's personal vault. Should work for any vault that follows the contract, but the dogfood-to-other-vaults loop is just starting.
+Current release: **v0.3.0** (2026-04-21). Twelve CLI commands, an MCP stdio server, and a built-in local wiki viewer. Used in production against the maintainer's personal vault. Should work for any vault that follows the contract, but the dogfood-to-other-vaults loop is just starting. See [CHANGELOG.md](CHANGELOG.md) for what's shipped per release.
 
 If you adopt Sparks, please [open an issue](https://github.com/yogirk/sparks/issues) — what worked, what was confusing, what your shape needed that v1 doesn't have.
 
