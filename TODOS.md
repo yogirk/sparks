@@ -111,6 +111,26 @@ Post-v1 work tracked here. v1 scope is frozen in `~/.gstack/projects/sparks/rk-u
 
 ---
 
+## Wiki consolidation / `sparks doctor` (v1.1 or v2)
+
+**What.** A curation phase distinct from synthesis: review the existing wiki for contradictions, gaps, and stale pages, and propose refinements as a reviewable diff. Three jobs, likely separable:
+1. **Gap pass** — orphan `[[links]]` with no page, entities with 1 source, stale summaries. Mechanical, no LLM needed for most of it.
+2. **Contradiction pass** — pairwise check pages that share entities/claims, flag disagreements for human review (do not auto-resolve).
+3. **Strengthen/fade pass** — per-page "heat" score from source count, recency, inbound links. Cold pages get archived (not deleted), hot ones surface in the index.
+
+Start with #1 as a read-only `sparks doctor` report. #2 and #3 are bigger design calls — revisit once we see what the gap report actually finds.
+
+**Why.** Synthesis (v0.3.0) is additive: inbox → wiki. Consolidation is editorial: wiki → better wiki. Without it, the vault only grows — contradictions accumulate, weak entities clutter the index, and the agent has no mechanism to actively curate what it has already written. Raised by a commenter on Karpathy's gist (2026-04-23): *"the agent periodically reviews its conversation archives, identifies contradictions, finds gaps, and proposes refinements. Not just accumulate — actively curate. Like human sleep: memories consolidated, weak ones fade, important ones strengthen."*
+
+**Pros.** Closes a real loop in the Karpathy pattern. Gap pass is cheap and high-signal. Keeps the vault honest at scale.
+**Cons.** Contradiction detection without auto-resolution still needs a good review UX or the flags rot. "Heat" scoring is a whole sub-design (what signals, what thresholds, archive-not-delete semantics). Mixing consolidation into weekly synthesis would muddy the contract — needs its own command and cadence.
+
+**Context.** Keep consolidation as a separate opt-in command (`sparks doctor` or `sparks consolidate`), not folded into the weekly synthesis run. Synthesis is additive and safe-ish; consolidation is destructive/editorial and its diff must be reviewable independently.
+
+**Depends on.** v0.3.0 synthesis stable and dogfooded for long enough that the wiki has the shape of problems worth consolidating (orphans, contradictions, cold pages). Likely weeks, not days.
+
+---
+
 ## Multi-user coordination (v2+, probably never)
 
 **What.** True multi-writer support (multiple humans editing the same vault simultaneously).
