@@ -75,8 +75,8 @@ release:
     Install:
 
     ```bash
-    # Homebrew (reuses the yogirk/homebrew-tgcp tap)
-    brew install yogirk/tgcp/sparks
+    # Homebrew
+    brew install yogirk/tap/sparks
 
     # Go install
     go install github.com/yogirk/sparks/cmd/sparks@{{ .Tag }}
@@ -87,7 +87,7 @@ release:
 brews:
   - repository:
       owner: yogirk
-      name: homebrew-tgcp
+      name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     commit_author:
       name: yogirk
